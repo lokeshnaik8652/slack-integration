@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,33 +21,58 @@ public class GithubWebhookController {
     }
 
     @PostMapping("/webhook")
-    public String handleGithubEvent(@RequestBody Map<String, Object> payload) {
+    public String handleGithubEvent(
+            @RequestHeader("X-GitHub-Event") String eventType,
+            @RequestBody Map<String, Object> payload) {
 
-        // 👤 user
-        Map<String, Object> sender = (Map<String, Object>) payload.get("sender");
-        String user = sender != null ? sender.get("login").toString() : "Unknown";
+        switch (eventType) {
 
-        // 📦 repo
-        Map<String, Object> repo = (Map<String, Object>) payload.get("repository");
-        String repoName = repo != null ? repo.get("name").toString() : "Unknown";
+            case "push":
+                return handlePush(payload);
 
-        // 📝 commit message
-        String commitMsg = "No commit";
-        if (payload.containsKey("commits")) {
-            var commits = (java.util.List<Map<String, Object>>) payload.get("commits");
-            if (!commits.isEmpty()) {
-                commitMsg = commits.get(0).get("message").toString();
-            }
+            case "pull_request":
+                return handlePR(payload);
+
+            default:
+                return "Event ignored: " + eventType;
         }
+    }
 
-        // 🔥 Slack Message
+    private String handlePush(Map<String, Object> payload) {
+
+        String user = ((Map<String, Object>) payload.get("sender")).get("login").toString();
+        String repo = ((Map<String, Object>) payload.get("repository")).get("name").toString();
+
+        var commits = (java.util.List<Map<String, Object>>) payload.get("commits");
+        String commitMsg = commits.isEmpty() ? "No commit" : commits.get(0).get("message").toString();
+
         String message = String.format(
-                "*🚀 New GitHub Push*\n👤 *User:* %s\n📦 *Repo:* %s\n📝 *Commit:* %s",
-                user, repoName, commitMsg
+                "*🚀 New Push*\n👤 *User:* %s\n📦 *Repo:* %s\n📝 *Commit:* %s",
+                user, repo, commitMsg
         );
 
         slackService.sendColoredMessage(message, "success");
 
-        return "OK";
+        return "Push handled";
+    }
+
+    private String handlePR(Map<String, Object> payload) {
+
+        Map<String, Object> pr = (Map<String, Object>) payload.get("pull_request");
+
+        String title = pr.get("title").toString();
+        String action = payload.get("action").toString();
+        String user = ((Map<String, Object>) payload.get("sender")).get("login").toString();
+
+        String message = String.format(
+                "*🔀 Pull Request %s*\n👤 *User:* %s\n📌 *Title:* %s",
+                action.toUpperCase(), user, title
+        );
+
+        String type = action.equals("opened") ? "success" : "warning";
+
+        slackService.sendColoredMessage(message, type);
+
+        return "PR handled";
     }
 }
