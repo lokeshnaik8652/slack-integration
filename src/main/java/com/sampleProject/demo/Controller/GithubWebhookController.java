@@ -30,7 +30,7 @@ public class GithubWebhookController {
             case "push":
                 return handlePush(payload);
 
-            case "pull_request":
+            case "pull":
                 return handlePR(payload);
 
             default:
@@ -58,7 +58,7 @@ public class GithubWebhookController {
 
     private String handlePR(Map<String, Object> payload) {
 
-        Map<String, Object> pr = (Map<String, Object>) payload.get("pull_request");
+        Map<String, Object> pr = (Map<String, Object>) payload.get("pull");
 
         String title = pr.get("title").toString();
         String action = payload.get("action").toString();
