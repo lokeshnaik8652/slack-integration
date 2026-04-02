@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class GithubWebhookController {
 
     @PostMapping("/webhook")
-    public String handleGithubEvent(@RequestBody Map<String, Object> payload) {
+    public String handleGithubEvent() {
         return "OK";
     }
 }
