@@ -63,13 +63,12 @@ public class GithubWebhookController {
         var commits = (java.util.List<Map<String, Object>>) payload.get("commits");
 
         // 🔍 Find or create author
-//        Author author = authorRepo.findByUsername(username)
-//                .orElseGet(() -> {
-//                    Author a = new Author();
-//                    a.setUsername(username);
-//                    return authorRepo.save(a);
-//                });
-        
+        Author author = authorRepo.findByUsername(username)
+                .orElseGet(() -> {
+                    Author a = new Author();
+                    a.setUsername(username);
+                    return authorRepo.save(a);
+                });
 
         StringBuilder commitMessages = new StringBuilder();
 
@@ -89,12 +88,12 @@ public class GithubWebhookController {
             String commitAuthorName = commitAuthor.get("name").toString();
 
             // 💾 Save into DB
-//            CommitEntity commit = new CommitEntity();
-//            commit.setMessage(message);
-//            commit.setCommitId(commitId);
-//            commit.setAuthor(author);
+            CommitEntity commit = new CommitEntity();
+            commit.setMessage(message);
+            commit.setCommitId(commitId);
+            commit.setAuthor(author);
 
-//            commitRepo.save(commit);
+            commitRepo.save(commit);
 
             // 📤 Build Slack message
             commitMessages.append("• ")
