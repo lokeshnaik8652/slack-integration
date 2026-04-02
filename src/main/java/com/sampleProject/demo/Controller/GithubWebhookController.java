@@ -33,23 +33,20 @@ public class GithubWebhookController {
 
     @PostMapping("/webhook")
     public String handleGithubEvent(
-//            @RequestHeader("X-GitHub-Event") String eventType,
-//            @RequestBody Map<String, Object> payload
-    		) {
-    	
-    	return "hello";
+            @RequestHeader("X-GitHub-Event") String eventType,
+            @RequestBody Map<String, Object> payload) {
 
-//        switch (eventType) {
-//
-//            case "push":
-//                return handlePush(payload);
-//
-//            case "pull_request":
-//                return handlePR(payload);
-//
-//            default:
-//                return "Event ignored: " + eventType;
-//        }
+        switch (eventType) {
+
+            case "push":
+                return handlePush(payload);
+
+            case "pull_request":
+                return handlePR(payload);
+
+            default:
+                return "Event ignored: " + eventType;
+        }
     }
 
     private String handlePush(Map<String, Object> payload) {
